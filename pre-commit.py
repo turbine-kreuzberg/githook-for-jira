@@ -18,13 +18,15 @@ import json
 def build_commit_json(message):
 	return "{\"body\": \"%s\"}" % (message)
 
-def send_commit_message_to_jira(url, ticket, message, paswd):
-	headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8'}
-	r = requests.post(url, data=build_commit_json(message), headers=headers auth=(get_user(), paswd))
-	print r
-
 def get_user():
 	return g.config('--get','user.email')
+
+def send_commit_message_to_jira(url, ticket, message, paswd):
+	headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8'}
+	r = requests.post(url, data=build_commit_json(message), headers=headers, auth=(get_user(), paswd))
+	print r
+
+
 
 
 g = git.Git('.')
