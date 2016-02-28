@@ -8,41 +8,71 @@ project_format = '[A-Z][A-Z]+'
 issue_pattern = '{}-[\d]+'.format(project_format)
 
 import sys, os, re, git, getpass
-import requests
+import requests, base64
 import json
-#from subprocess import check_output
+from requests import Session
+from requests.auth import HTTPBasicAuth
 
-#teststring = "#muh"
+class git_hook_for_jira:
+	def build_commit_json(self, message):
 
+		return json.dumps({"body": message})
 
-def build_commit_json(message):
-	return "{\"body\": \"%s\"}" % (message)
+	def get_user():
+		email = g.config('--get','user.name')
 
-def get_user():
-	return g.config('--get','user.email')
+		return email
 
-def send_commit_message_to_jira(url, ticket, message, paswd):
-	headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8'}
-	r = requests.post(url, data=build_commit_json(message), headers=headers, auth=(get_user(), paswd))
-	print r
+	def get_auth(self, paswd):
+		base64string = base64.encodestring('%s:%s' % (get_user(), paswd)).replace('\n', '')
 
+		return "Basic %s" % (base64string) 
+		
 
+	def prepare_request(self, url, message, paswd):
+		headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', "Authorization": get_auth(paswd)}
+		request = requests.Request('POST',url, data=build_commit_json(message), headers=headers)
+
+		return request.prepare()
+
+	def send_commit_message_to_jira(self, prepeared_request):
+		s = Session(prepeared_request)
+
+		return s.send(prepeared_request)
+
+	def pretty_print_POST(self, req):
+	    """
+	    At this point it is completely built and ready
+	    to be fired; it is "prepared".
+
+	    However pay attention at the formatting used in 
+	    this function because it is programmed to be pretty 
+	    printed and may differ from the actual request.
+	    """
+	    print('{}\n{}\n{}\n\n{}'.format(
+	        '-----------START-----------',
+	        req.method + ' ' + req.url,
+	        '\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
+	        req.body,
+	    ))
 
 
 g = git.Git('.')
 ticket = g.log('-1', '--pretty=%s')
 ticket = re.search(issue_pattern,ticket)
 message = g.log('-1', '--pretty=%b')
-url = 'https://votum-projects.atlassian.net/rest/api/2/issue/'
+
 
 username = g.config('--get','user.email')
-print message
-print 'username from git %s' % (username)
+print build_commit_json(message)
+print 'username from git %s' % (get_user())
 paswd = getpass.getpass('password: ')
 
 if ticket:
-	send_commit_message_to_jira (url, ticket.group(0), message, paswd)
-
+	ticket = ticket.group(0)
+	url = 'https://votum-projects.atlassian.net/rest/api/2/issue/%s/comment' % (ticket)
+	send_commit_message_to_jira(prepare_request(url, message, paswd))
+	
 else:
     print "no ticket id found"
 
