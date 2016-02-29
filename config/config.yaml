@@ -1,0 +1,2 @@
+jira_url_base_path: ""
+jira_method: "{jira_url_base_path}/rest/api/2/issue/%s/comment"
