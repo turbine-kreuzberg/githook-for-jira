@@ -59,11 +59,17 @@ class JiraGitHook:
 	        req.body,
 	    ))
 
-	def get_jira_url(self, g, ticket):
+	def get_jira_url(self, g):
 		try:
-			return g.config('--get','user.jira') + ticket
+			return g.config('--get','user.jira')
 		except Exception:
 			return None
+	def get_jira_api_url(self,g, ticket):
+
+		jira_url = self.get_jira_url(g)
+		if jira_url:
+			return '%s/rest/api/2/issue/%s/comment' % (jira_url, ticket)
+		return None
 
 	def set_jira_url_in_git_config(self, g, jira_url):
 		g.config('--global','user.jira', jira_url)
@@ -79,7 +85,7 @@ class JiraGitHook:
 		if ticket:
 			ticket = ticket.group(0)
 			message = g.log('-1', '--pretty=%b')
-			url = self.get_jira_url(g, ticket)
+			url = self.get_jira_api_url(g, ticket)
 			if not url:
 				return "jira api url is not set!"
 			#todo validate username is surname.lastname
