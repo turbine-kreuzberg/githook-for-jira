@@ -92,7 +92,8 @@ class JiraGitHook:
 			username = self.get_username(g)
 			paswd = getpass.getpass('password: ')
 			auth_string = self.get_auth(username, paswd)
-
-			return self.send_commit_message_to_jira(self.prepare_request(url, message, auth_string))
+			prepared_request = self.prepare_request(url, message, auth_string)
+			print prepared_request
+			return self.send_commit_message_to_jira(prepared_request)
 
 		return "no ticket id found!"
