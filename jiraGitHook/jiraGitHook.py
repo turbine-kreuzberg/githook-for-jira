@@ -88,7 +88,7 @@ class JiraGitHook:
 		return g.log('-1', '--pretty=%H')
 
 	def create_jira_message(self, g, gitlab_url, commit_hash, commit_message_body):
-		return "<a href='%s/commit/%s'>%s<a> %s" % (gitlab_url, commit_hash, commit_hash, commit_message_body)
+		return "%s \n\n%s/commit/%s" % (commit_message_body, gitlab_url, commit_hash)
 
 	def git_hook(self, subject = None):
 		g = git.Git('.')

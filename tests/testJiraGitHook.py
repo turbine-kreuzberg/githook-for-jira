@@ -98,7 +98,7 @@ class TestJiraGitHook(unittest.TestCase):
         jira_message = jiraGitHook.create_jira_message(self.g, 'http://git.me/project','4e63307c35eaa0288d820be9dc2b5f0157435579', 'the message')
 
         self.assertEquals(jira_message,
-                          "<a href='http://git.me/project/commit/4e63307c35eaa0288d820be9dc2b5f0157435579'>4e63307c35eaa0288d820be9dc2b5f0157435579<a> the message")
+                          "the message \n\nhttp://git.me/project/commit/4e63307c35eaa0288d820be9dc2b5f0157435579")
 
 
 
