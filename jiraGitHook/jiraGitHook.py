@@ -64,6 +64,13 @@ class JiraGitHook:
 			return g.config('--get','user.jira')
 		except Exception:
 			return None
+
+	def get_gitlab_url(self, g):
+		try:
+			return g.config('--get','user.gitlab')
+		except Exception:
+			return None
+
 	def get_jira_api_url(self,g, ticket):
 
 		jira_url = self.get_jira_url(g)
@@ -72,7 +79,16 @@ class JiraGitHook:
 		return None
 
 	def set_jira_url_in_git_config(self, g, jira_url):
-		g.config('--global','user.jira', jira_url)
+		return g.config('--global','user.jira', jira_url)
+
+	def get_commit_message_body(self, g):
+		return g.log('-1', '--pretty=%b')
+
+	def get_commit_hash(self, g):
+		return g.log('-1', '--pretty=%H')
+
+	def create_jira_message(self, g, gitlab_url, commit_hash, commit_message_body):
+		return "<a href='%s/commit/%s'>%s<a> %s" % (gitlab_url, commit_hash, commit_hash, commit_message_body)
 
 	def git_hook(self, subject = None):
 		g = git.Git('.')
@@ -84,15 +100,26 @@ class JiraGitHook:
 
 		if ticket:
 			ticket = ticket.group(0)
-			message = g.log('-1', '--pretty=%b')
-			url = self.get_jira_api_url(g, ticket)
-			if not url:
+			commit_message_body = self.get_commit_message_body(g)
+			if not commit_message_body:
+				return "message body not set. use empty line after subject!"
+
+			gitlab_url = self.get_gitlab_url(g)
+			if not gitlab_url:
+				return "gitlab url not set!"
+
+			jira_url = self.get_jira_api_url(g, ticket)
+			if not jira_url:
 				return "jira api url is not set!"
+
 			#todo validate username is surname.lastname
 			username = self.get_username(g)
 			paswd = getpass.getpass('password: ')
 			auth_string = self.get_auth(username, paswd)
-			prepared_request = self.prepare_request(url, message, auth_string)
+			commit_hash = self.get_commit_hash(g)
+			message = self.create_jira_message(g, gitlab_url, commit_hash, commit_message_body)
+			prepared_request = self.prepare_request(jira_url, message, auth_string)
+			# debug
 			print self.pretty_print_POST(prepared_request)
 			return self.send_commit_message_to_jira(prepared_request)
 
