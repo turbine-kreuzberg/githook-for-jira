@@ -24,8 +24,11 @@ class JiraGitHook:
 
 		return email
 
+	def stringToBase64(self, s):
+		return base64.b64encode(s.encode('utf-8'))
+
 	def get_auth(self, username, paswd):
-		base64string = base64.encodestring('%s:%s' % (username, paswd)).replace('\n', '')
+		base64string = self.stringToBase64(('%s:%s' % (username, paswd)).replace('\n', ''))
 
 		return "Basic %s" % (base64string) 
 		
@@ -120,7 +123,7 @@ class JiraGitHook:
 			message = self.create_jira_message(g, gitlab_url, commit_hash, commit_message_body)
 			prepared_request = self.prepare_request(jira_url, message, auth_string)
 			# debug
-			print self.pretty_print_POST(prepared_request)
+			print (self.pretty_print_POST(prepared_request))
 			return self.send_commit_message_to_jira(prepared_request)
 
-		return "no ticket id found!"
+		return ("no ticket id found!")
