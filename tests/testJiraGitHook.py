@@ -49,7 +49,7 @@ class TestJiraGitHook(unittest.TestCase):
         jiraGitHook.get_jira_url = mock.Mock(return_value=None)
         subject = "this is MYTICKET-44"
 
-        self.assertEquals(jiraGitHook.git_hook(subject), "jira api url is not set!")
+        self.assertEquals(jiraGitHook.git_hook(subject), "jira api url is not sete!")
 
     def test_git_message_body_not_set(self):
         jiraGitHook = JiraGitHook()
