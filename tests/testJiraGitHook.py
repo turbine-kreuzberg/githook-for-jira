@@ -95,10 +95,10 @@ class TestJiraGitHook(unittest.TestCase):
     def test_create_jira_message(self):
         'http://git.votum-media.net/bio/bio-circle/commit/4e63307c35eaa0288d820be9dc2b5f0157435579'
         jiraGitHook = JiraGitHook()
-        jira_message = jiraGitHook.create_jira_message(self.g, 'http://git.me/project','4e63307c35eaa0288d820be9dc2b5f0157435579', 'the message')
+        jira_message = jiraGitHook.create_jira_message(self.g, 'http://git.me/project','4e63307c35eaa0288d820be9dc2b5f0157435579', 'some ticket BBB-342', 'the message')
 
         self.assertEquals(jira_message,
-                          "the message \n\nhttp://git.me/project/commit/4e63307c35eaa0288d820be9dc2b5f0157435579")
+                          "some ticket BBB-342\n\nthe message \n\nhttp://git.me/project/commit/4e63307c35eaa0288d820be9dc2b5f0157435579")
 
 
 

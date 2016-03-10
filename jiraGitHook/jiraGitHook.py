@@ -20,7 +20,7 @@ class JiraGitHook:
 		return json.dumps({"body": message})
 
 	def get_username(self, g):
-		email = g.config('--get','user.name')
+		email = g.config('--global', '--get', 'user.name')
 
 		return email
 
@@ -90,10 +90,10 @@ class JiraGitHook:
 	def get_commit_hash(self, g):
 		return g.log('-1', '--pretty=%H')
 
-	def create_jira_message(self, g, gitlab_url, commit_hash, commit_message_body):
-		return "%s \n\n%s/commit/%s" % (commit_message_body, gitlab_url, commit_hash)
+	def create_jira_message(self, g, gitlab_url, commit_hash, commit_subject, commit_message_body):
+		return "%s\n\n%s \n\n%s/commit/%s" % (commit_subject, commit_message_body, gitlab_url, commit_hash)
 
-	def git_hook(self, subject = None):
+	def git_hook(self, subject = None, do_debug = None):
 		g = git.Git('.')
 
 		if not subject:
@@ -120,10 +120,12 @@ class JiraGitHook:
 			paswd = getpass.getpass('password: ')
 			auth_string = self.get_auth(username, paswd)
 			commit_hash = self.get_commit_hash(g)
-			message = self.create_jira_message(g, gitlab_url, commit_hash, commit_message_body)
+			message = self.create_jira_message(g, gitlab_url, commit_hash, subject, commit_message_body)
 			prepared_request = self.prepare_request(jira_url, message, auth_string)
 			# debug
-			print (self.pretty_print_POST(prepared_request))
+			if do_debug:
+				print ('\nusername: %s' % (username))
+				print (self.pretty_print_POST(prepared_request))
 			return self.send_commit_message_to_jira(prepared_request)
 
 		return ("no ticket id found!")
